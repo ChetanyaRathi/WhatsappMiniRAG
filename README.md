@@ -1,4 +1,4 @@
-# WhatsApp Mimic RAG Agent
+# WhatsApp RAG Agent
 
 An autonomous WhatsApp agent that replies on your behalf using RAG (Retrieval Augmented Generation) built with ChromaDB, Gemini, FastAPI and whatsapp-web.js.
 
