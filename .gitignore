@@ -1,0 +1,29 @@
+# Environment variables - contains API keys
+.env
+
+# ChromaDB vector database - large files, regenerated locally
+chroma_data/
+
+# Personal WhatsApp chat exports - private conversations
+chats/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+venv/
+
+# Node modules - reinstalled via npm install
+node_modules/
+
+# Generated datasets - contain personal conversations
+datasets/
+dataset.json
+dataset_expansion.json
+
+# WhatsApp session data - regenerated on each run
+autonomous_agent/bridge/.wwebjs_auth/
+autonomous_agent/bridge/.wwebjs_cache/
+
+# Mac OS
+.DS_Store
