@@ -1,4 +1,12 @@
+from dotenv import load_dotenv
 import os
+
+load_dotenv()  # this will look for .env in current directory
+
+api_key = os.environ.get("GEMINI_API_KEY")
+if not api_key:
+    raise ValueError("GEMINI_API_KEY not found in environment.")
+
 import chromadb
 from chromadb.utils import embedding_functions
 from google import genai as genai_new
@@ -11,10 +19,6 @@ class RAGRetriever:
         
         with open("config.json", "r") as f:
             self.config = json.load(f)
-
-        api_key = os.environ.get("GEMINI_API_KEY")
-        if not api_key:
-            raise ValueError("GEMINI_API_KEY not found in environment.")
 
         # Custom embedding class matching vector_db.py
         class GeminiEmbeddingFunction(embedding_functions.EmbeddingFunction):

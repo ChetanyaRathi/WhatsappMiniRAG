@@ -65,6 +65,8 @@ def parse_all_chats():
         if not messages:
             continue
 
+        is_group_chat = len(set(msg['sender'] for msg in messages)) > 2
+
         # Group continuous messages by the same sender
         grouped_messages = []
         for msg in messages:
@@ -87,7 +89,8 @@ def parse_all_chats():
                 contact_pairs.append({
                     "input": msg1['text'],
                     "reply": msg2['text'],
-                    "contact": contact_name
+                    "contact": contact_name,
+                    "chat_type": "group" if is_group_chat else "individual"
                 })
         
         merged_pairs.extend(contact_pairs)

@@ -1,5 +1,13 @@
-import json
+from dotenv import load_dotenv
 import os
+
+load_dotenv()  # this will look for .env in current directory
+
+api_key = os.environ.get("GEMINI_API_KEY")
+if not api_key:
+    raise ValueError("GEMINI_API_KEY not found in environment.")
+
+import json
 import time
 import sys
 import chromadb
@@ -7,9 +15,6 @@ from chromadb.utils import embedding_functions
 from google import genai
 from google.genai import types
 import re
-from dotenv import load_dotenv
-
-load_dotenv()
 
 CHROMA_DATA_DIR = "../chroma_data"
 DATASETS_DIR = "./datasets"
@@ -17,12 +22,6 @@ COLLECTION_NAME = "whatsapp_mimic"
 MERGED_FILE = os.path.join(DATASETS_DIR, "merged.json")
 
 def setup_vector_db():
-    api_key = os.environ.get("GEMINI_API_KEY")
-    if not api_key:
-        print("Error: GEMINI_API_KEY environment variable not set.")
-        print("Set it in the .env file or export it manually.")
-        sys.exit(1)
-
     if not os.path.exists(MERGED_FILE):
         print(f"Error: {MERGED_FILE} not found. Please run parser.py first.")
         sys.exit(1)

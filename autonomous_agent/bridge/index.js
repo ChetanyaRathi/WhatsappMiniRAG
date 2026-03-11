@@ -34,11 +34,18 @@ client.on('message', async msg => {
         const message_text = msg.body;
         const is_group = msg.from.includes('@g.us');
 
+        let groupName = "";
+        if (is_group) {
+            const chat = await msg.getChat();
+            groupName = chat.name;
+        }
+
         const payload = {
             sender_name: senderName,
             sender_number: sender_number,
             message: message_text,
-            is_group: is_group
+            is_group: is_group,
+            group_name: groupName
         };
 
         const response = await axios.post('http://localhost:8000/reply', payload);

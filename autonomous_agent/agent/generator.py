@@ -1,7 +1,15 @@
+from dotenv import load_dotenv
+import os
+
+load_dotenv()  # this will look for .env in current directory
+
+api_key = os.environ.get("GEMINI_API_KEY")
+if not api_key:
+    raise ValueError("GEMINI_API_KEY not found in environment.")
+
 import json
 import random
 import time
-import os
 from google import genai
 from google.genai import types
 
@@ -9,10 +17,6 @@ class ReplyGenerator:
     def __init__(self):
         with open("config.json", "r") as f:
             self.config = json.load(f)
-
-        api_key = os.environ.get("GEMINI_API_KEY")
-        if not api_key:
-            raise ValueError("GEMINI_API_KEY not found in environment.")
 
         self.client = genai.Client(api_key=api_key)
         self.safety_settings = [
@@ -37,7 +41,7 @@ class ReplyGenerator:
         prob = contact_config.get("reply_probability", 1.0)
         return random.random() > prob
 
-    def generate(self, message, examples_list, sender_name, conversation_history=None):
+    def generate(self, message, examples_list, sender_name, conversation_history=None, override_tone=None):
         if conversation_history is None:
             conversation_history = []
             
@@ -55,7 +59,7 @@ You are {self.config['persona']['name']}, a {self.config['persona']['age']}-year
 You are chatting with {sender_name}, who is your {contact_config['relationship']}.
 
 # TONE FOR THIS CONTACT
-{contact_config['tone']}
+{override_tone if override_tone else contact_config['tone']}
 
 # STRICT FORMATTING RULES
 - ALL LOWERCASE

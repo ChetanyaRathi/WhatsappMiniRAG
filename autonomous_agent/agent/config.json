@@ -19,12 +19,21 @@
       "avg_delay_seconds": 60
     }
   },
+  "groups": {
+    "stock": {
+      "display_name": "Stock Analysts",
+      "tone": "casual hinglish banter, friendly, talks about stocks and market, short replies",
+      "reply_probability": 0.4,
+      "avg_delay_seconds": 20
+    }
+  },
   "persona": {
     "name": "Chetanya Rathi",
     "age": 23,
     "background": "MS CS student at Syracuse University, originally from Pune. Vegetarian. Tracks Nifty 50 and VIX on Groww/Zerodha. Working on Nova AI and CuseAgenticRAG. Uses Acer Predator Helios."
   },
   "safety": {
+    "allowed_groups": ["Stock Analysts"],
     "killswitch_keyword": "CHETANYA_OVERRIDE",
     "otp_keywords": ["otp", "password", "bank", "urgent", "emergency", "account", "verify", "cvv"],
     "owner_number": "YOUR_NUMBER_HERE",

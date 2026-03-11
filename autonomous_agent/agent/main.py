@@ -1,14 +1,19 @@
+from dotenv import load_dotenv
+import os
+
+load_dotenv()  # this will look for .env in current directory
+
+api_key = os.environ.get("GEMINI_API_KEY")
+if not api_key:
+    raise ValueError("GEMINI_API_KEY not found in environment.")
+
 from fastapi import FastAPI, BackgroundTasks
 import uvicorn
 import json
-import os
 import random
 from pydantic import BaseModel
 from rag import RAGRetriever
 from generator import ReplyGenerator
-from dotenv import load_dotenv
-
-load_dotenv()
 
 app = FastAPI()
 
@@ -28,6 +33,7 @@ class IncomingMessage(BaseModel):
     sender_number: str
     message: str
     is_group: bool = False
+    group_name: str = ""
 
 @app.on_event("startup")
 async def startup_event():
@@ -40,7 +46,7 @@ async def reply(msg: IncomingMessage):
     ALLOWED_CONTACTS = list(config["contacts"].keys())
     ALLOWED_CONTACTS = [c for c in ALLOWED_CONTACTS if c != "default"]
 
-    if msg.sender_name not in ALLOWED_CONTACTS:
+    if not msg.is_group and msg.sender_name not in ALLOWED_CONTACTS:
         print(f"Blocked message from unknown contact: {msg.sender_name}")
         return {"reply": None, "delay_ms": 0}
 
@@ -72,6 +78,53 @@ async def reply(msg: IncomingMessage):
         # Extremely basic mention logic - checks if persona name is in string
         if config["persona"]["name"].split()[0].lower() not in msg_lower:
             return {"reply": None, "delay_ms": 0}
+
+    if msg.is_group:
+        allowed_groups = config["safety"].get("allowed_groups", [])
+        if msg.group_name not in allowed_groups:
+            print(f"Blocked message from unknown group: {msg.group_name}")
+            return {"reply": None, "delay_ms": 0}
+        
+        group_config = None
+        group_key = None
+        for key, val in config["groups"].items():
+            if val["display_name"] == msg.group_name:
+                group_config = val
+                group_key = key
+                break
+        
+        if not group_config:
+            return {"reply": None, "delay_ms": 0}
+        
+        if random.random() > group_config["reply_probability"]:
+            print(f"Ignored group message from {msg.group_name} (probability roll)")
+            return {"reply": None, "delay_ms": 0}
+        
+        number = msg.sender_number
+        if number not in conversation_histories:
+            conversation_histories[number] = []
+        conversation_histories[number].append(f"{msg.sender_name}: {msg.message}")
+        
+        rag_examples = rag.query(
+            message=msg.message,
+            contact_name=group_key
+        )
+        
+        print(f"Generating group reply for {msg.group_name} based on {len(rag_examples)} DB context matches...")
+        reply_text = generator.generate(
+            msg.message,
+            rag_examples,
+            msg.sender_name,
+            conversation_histories[number],
+            override_tone=group_config["tone"]
+        )
+        
+        conversation_histories[number].append(f"Me: {reply_text}")
+        conversation_histories[number] = conversation_histories[number][-20:]
+        daily_reply_count += 1
+        delay = generator.calculate_delay(reply_text)
+        print(f"Group reply -> {reply_text} (Delay: {delay}ms)")
+        return {"reply": reply_text, "delay_ms": delay}
 
     contact_config = generator.get_contact_config(msg.sender_name)
     
